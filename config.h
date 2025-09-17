@@ -1,5 +1,4 @@
 #pragma once
-#include "config_common.h"
 
 /* --- Matrix size (total across both halves) --- */
 #define MATRIX_ROWS 6
