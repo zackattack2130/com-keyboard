@@ -4,7 +4,7 @@
   "maintainer": "zackattack2130",
   "processor": "atmega32u4",
   "bootloader": "caterina",
-  "diode_direction": "ROW2COL",
+  
 
   "split": {
     "enabled": true,
@@ -14,10 +14,7 @@
 
   "features": { "bootmagic": true, "extrakey": true, "mousekey": true, "nkro": true },
 
-  "matrix_pins": {
-    "rows": ["F6", "F7", "B1"],
-    "cols": ["D3", "D4", "C6", "D7", "E6", "B4", "B5"]
-  },
+  
 
   "layouts": {
     "LAYOUT_split_3x7": {
