@@ -50,21 +50,57 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 /* ----------------------- Optional OLED ----------------------- */
 #ifdef OLED_ENABLE
-bool oled_task_user(void) {
-  if (is_keyboard_master()) {
-    oled_set_cursor(0, 1);
-    switch (get_highest_layer(layer_state)) {
-      case _BASE: oled_write_ln_P(PSTR("Layer 1"), false); break;
-      case _FN:   oled_write_ln_P(PSTR("Layer 2"), false); break;
+#    include "oled_driver.h"
+#    include "bongo_frames.h"  // ← the file you just downloaded
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Animation controls
+static uint32_t anim_timer = 0;
+static uint8_t  anim_frame = 0;
+
+#define ANIM_FRAME_MS        120   // swap tap1/tap2 this fast while typing
+#define WPM_TAP_THRESHOLD     10   // >10 WPM = play bongos
+
+// Optional: rotate the non-master display if needed for your build
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    if (!is_keyboard_master()) {
+        return OLED_ROTATION_180;
     }
-    oled_set_cursor(1, 1);
-    oled_write_P(PSTR("WPM: "), false);
-    oled_write(get_u8_str(get_current_wpm(), ' '), false);
-  } else {
-    oled_set_cursor(0, 0);
-    led_t led_state = host_keyboard_led_state();
-    oled_write_P(led_state.caps_lock ? PSTR("CAPS*") : PSTR("CAPS "), false);
-  }
-  return false;
+    return rotation;
+}
+
+static void render_bongo(void) {
+    const uint8_t wpm = get_current_wpm();
+    if (wpm > WPM_TAP_THRESHOLD) {
+        if (timer_elapsed32(anim_timer) > ANIM_FRAME_MS) {
+            anim_timer ^= timer_read32();        // refresh timer cheaply
+            anim_frame ^= 1;                     // 0 ↔ 1
+        }
+        if (anim_frame == 0) {
+            oled_write_raw_P(bongo_tap1, sizeof(bongo_tap1));
+        } else {
+            oled_write_raw_P(bongo_tap2, sizeof(bongo_tap2));
+        }
+    } else {
+        oled_write_raw_P(bongo_idle, sizeof(bongo_idle));
+    }
+}
+
+bool oled_task_user(void) {
+    if (is_keyboard_master()) {
+        // ── your original status text ─────────────────────────────────────────
+        oled_set_cursor(0, 1);
+        switch (get_highest_layer(layer_state)) {
+            case _BASE: oled_write_ln_P(PSTR("Layer 1"), false); break;
+            case _FN:   oled_write_ln_P(PSTR("Layer 2"), false); break;
+        }
+        oled_set_cursor(1, 1);
+        oled_write_P(PSTR("WPM: "), false);
+        oled_write(get_u8_str(get_current_wpm(), ' '), false);
+    } else {
+        render_bongo();
+    }
+    return false;
 }
 #endif
+
