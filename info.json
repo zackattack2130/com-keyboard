@@ -12,12 +12,7 @@
     "bootmagic": { "matrix": [0, 0] }
   },
 
-  "features": {
-    "bootmagic": true,
-    "extrakey": true,
-    "mousekey": true,
-    "nkro": true
-  },
+  "features": { "bootmagic": true, "extrakey": true, "mousekey": true, "nkro": true },
 
   "matrix_pins": {
     "rows": ["F6", "F7", "B1"],
